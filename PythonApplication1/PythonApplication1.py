@@ -1,32 +1,73 @@
 ﻿from urllib.request import urlopen
 from bs4 import BeautifulSoup
+import http.server
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
-url = 'http://openapi.e-gen.or.kr/openapi/service/rest/ErmctInfoInqireService/getEgytListInfoInqire?&Q0=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&Q1=%EC%A2%85%EB%A1%9C%EA%B5%AC&numOfRows=100&ServiceKey=FHlV2aXJriahVZyA8K86zVh2MbfmzRPOsXf9N5eHFWZaZBQ66vkxEI8sXLCFMHJ1SveL1Yu5bNpXty9kGs243g%3D%3D'
-data = urlopen(url)
+class DefaultHttpServerHandler(BaseHTTPRequestHandler):
+	def do_GET(self):
+		param = ''
+		method = ''
+		url = ''
+		c = self.path
+		temp = c.split("?")
+		query_components = list(c.split('=') for c in temp[1].split("&"))
+		for query in query_components:
+			if query[0] != 'method':
+				param += "&" + query[0] + "=" + query[1]
+			else:
+				method += query[1]
+		
+		if method == '0':
+			url += 'http://openapi.e-gen.or.kr/openapi/service/rest/ErmctInfoInqireService/getEgytLcinfoInqire?' + param + '&pageNo=1&numOfRows=10&ServiceKey=dTLz2zeqOB5BenN%2FtHECFHX5onmNjqdJ41W24Q38p4PMn%2BMPxsSowWg8X2pJEdNLBvmRyxMuHZMyEQkavolOYw%3D%3D'
+		else:
+			url += 'http://openapi.e-gen.or.kr/openapi/service/rest/ErmctInfoInqireService/getEgytListInfoInqire?' + param + '&pageNo=1&numOfRows=10&ServiceKey=dTLz2zeqOB5BenN%2FtHECFHX5onmNjqdJ41W24Q38p4PMn%2BMPxsSowWg8X2pJEdNLBvmRyxMuHZMyEQkavolOYw%3D%3D'
+		
+		
+		data = urlopen(url)
+		
+		
+		soup = BeautifulSoup(data, from_encoding="utf-8")
+		
+		print(url)		
+		
+			
+		elist = []
+	
+		for items in soup.findAll('item'):
+			temp = []
+			for item in items: 
+				temp.append(item.string)
+			elist.append(temp)
+	
+		print(elist)
+	
+		jsondata = []
+	
+		dic = {}
+	
+		if method == '0':
+			for item in elist:
+				dic = dict(DISTANCE=item[1], DUTY_NAME=item[6], DUTY_ADDR=item[2], DUTY_TEL1=item[7], LATITUDE=item[10], LONGITUDE=item[11])
+				jsondata.append(dic)
+		else:
+			for item in elist:
+				dic = dict(DUTY_NAME=item[3], DUTY_ADDR=item[0], DUTY_TEL1=item[4], LATITUDE=item[9], LONGITUDE=item[10])
+				jsondata.append(dic)
+	
+		data2 = json.dumps(jsondata, ensure_ascii=False)
+	
+		print(data2)
+	
+		# with open('data.json', 'w', encoding='utf-8') as f:
+		#     f.write(data2)
+				
+		self.wfile.write(data2.encode("UTF-8"));
+		# self.wfile.write('HELLO WORLD')
+				
 
-soup = BeautifulSoup(data, from_encoding="utf-8")
 
-elist = []
-
-for items in soup.findAll('item'):
-    temp = []
-    for item in items: 
-        temp.append(item.string)
-    elist.append(temp)
-
-jsondata = []
-
-dic = {}
-
-for item in elist:
-    dic = dict(name=item[3], emclsName=item[2], address=item[0], representTel=item[4], emergencyTel=item[5], latitude=item[9], longitude=item[10])
-    jsondata.append(dic)
-
-for item in jsondata:
-    print(item)
-
-data2 = json.dumps(jsondata, ensure_ascii=False)
-
-with open('data.json', 'w', encoding='utf-8') as f:
-    f.write(data2)
+if __name__ == '__main__':
+	httpd = HTTPServer(('', 8888), DefaultHttpServerHandler)
+	print ('Started Webserver port 8888...')
+	httpd.serve_forever()
