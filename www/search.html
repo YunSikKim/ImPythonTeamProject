@@ -1,0 +1,163 @@
+﻿<meta charset = UTF-8><meta charset = UTF-8>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Programming language</title>
+	<style type="text/css">
+	p,h1,h2,h3,h4,h5,h6,form,input,ul,li,dl,dt,dd {margin:0;padding:0;}
+	.Emergency{background-color: #CC3333; padding: 300px; margin: 50px; padding-top: 30px; padding-bottom: 0px; margin-bottom: 0;}
+	#Emerg_img{margin-top: 30px;}
+	body {text-align: center;background-color:#DDDDDD}
+	.Emerg_title{font: arial; font-size: 80; font-weight: bolder; font-align:left;padding-bottom: 0px;}
+	h2{padding-top: 30px;}
+	.result_box select{font-size:20px;width:500px;}
+	.search_input input{font-size:20px;width:150px;}
+	.search_button input{font-size:20px;width:100px;}
+	.MappingArea{background-color: #f6871e; padding: 300px; margin: 50px; padding-top: 0px; margin-top: 0}
+	.Map{margin: 50px;}
+	.Map{width: 500px; height:500px; background: #7d7d7d no-repeat;margin:auto;}
+	</style>
+
+</head>
+
+<body>
+	<div class = "Emergency"> 
+		<br><br>
+		<div id = "Emerg_img">
+		    <a href="/~KYS"><image src ="./img/image.png" width="200px" height="234px"></a>
+		</div>
+		<br>
+		<div class ="Emerg_title">
+		    EMERGENCY
+		</div>
+		<br><br><br><br><br>
+	</div>
+
+	<div class="MappingArea">
+		<br>
+		<div class="search_input">
+			시와 구를 입력합니다. (예:서울특별시, 광진구) <br>	
+			<input type="text" id="textbox1">  <input type="text" id="textbox2">
+		</div>
+		<div class="search_button">
+			<input type="button" value="검색" onclick="javascript:getHospital()">	
+		</div>
+		<br><br>
+		<div class="result_box">
+			<select id="hospitalList">
+				<option>결과값 출력 창 </option>
+			</select>
+			<br> <br>
+		</div>
+
+		<div class= "Map">
+		</div>
+		<br>
+		<div class= "Detail_info" id="detailView">
+		</div>
+	</div>
+</body>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDWx4QHjxwerTWqphkjlPz7EZCHhoG0z8&callback=initMap"></script>
+<script type="text/javascript">
+	var mMap;
+	var marker;
+
+	function initMap() {
+		var successCallback = function(position) {
+			var coords = position.coords,
+				myPosition = {lat: coords.latitude, lng: coords.longitude};
+
+			mMap = new google.maps.Map(document.querySelector('.Map'), {
+				center: myPosition,
+				zoom: 16
+			});
+
+			marker = new google.maps.Marker({
+				position: myPosition,
+				map: mMap,
+				title: 'My Position!'
+			});
+		};
+
+		var errorCallback = function(error) {
+			console.log(error);
+			alert('[ERROR_CODE: ' + error.code + ']' + error.message);
+		};
+
+		getGeolocation(successCallback, errorCallback, {
+			enableHighAccuracy: true
+		});
+		
+		//document.querySelector('#button1').addEventListener('click', getHospital());
+	}
+
+	function getGeolocation(success, error, options) {
+		if ( !navigator.geolocation ) {
+			return 'Not support geolocation';
+		}
+
+		return navigator.geolocation.getCurrentPosition(success, error, options);
+	}
+
+	function getHospital() {
+		var xmlHttp = new XMLHttpRequest(),
+			url = 'http://175.192.4.190:8888/?method=1&Q0=' + document.getElementById("textbox1").value + '&Q1=' + document.getElementById("textbox2").value;
+		xmlHttp.onreadystatechange = function(e) {
+			if(xmlHttp.readyState == 4) {
+				if(xmlHttp.status == 200) {
+					var data = xmlHttp.responseText;
+					
+
+					if ( data ) {
+						data = JSON.parse(data);
+
+						setHospitalList(data);
+					}
+				}
+			}
+		};
+		xmlHttp.open("GET", url, true);
+		xmlHttp.send(null);
+	}
+
+	function setHospitalList(hospitalList) {
+		var item,
+			hospitalListCount = hospitalList.length,
+			hospitalListHtml = '';
+
+		for ( var i = 0; i < hospitalListCount; i ++ ) {
+			item = hospitalList[i];
+
+			hospitalListHtml += '<option value=' + i + '>' + item.DUTY_NAME + '</option>';
+		}
+
+		document.querySelector('#hospitalList').innerHTML = hospitalListHtml;
+
+		document.querySelector('#hospitalList').addEventListener('change', function(e) {
+			var index = this.options[this.selectedIndex].value;
+			showHospitalData(hospitalList[index]);
+		});
+		showHospitalData(hospitalList[0]);
+	}
+
+	function showHospitalData(hospitalData) {
+		var html = [
+			'기관명 : ' + hospitalData.DUTY_NAME + '<br />',
+			'대표전화1 : ' + hospitalData.DUTY_TEL1 + '<br />',
+			'주소 : ' + hospitalData.DUTY_ADDR  + '<br />',
+			'병원경도 : ' + hospitalData.LONGITUDE + '<br />',
+			'병원위도 : ' + hospitalData.LATITUDE + '<br />',
+		];
+
+		marker.setPosition(new google.maps.LatLng(hospitalData.LATITUDE, hospitalData.LONGITUDE));
+		mMap.panTo(new google.maps.LatLng(hospitalData.LATITUDE, hospitalData.LONGITUDE));
+		document.querySelector('#detailView').innerHTML = html.join('');
+	}
+
+	(function() {
+
+	})();
+
+	
+</script>
+</html>

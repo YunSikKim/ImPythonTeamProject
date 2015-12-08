@@ -1,0 +1,159 @@
+﻿<meta charset = UTF-8>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Programming language</title>
+	<style type="text/css">
+	p,h1,h2,h3,h4,h5,h6,form,input,ul,li,dl,dt,dd {margin:0;padding:0;}
+	.Emergency{background-color: #CC3333; padding: 300px; margin: 50px; padding-top: 30px; padding-bottom: 0px; margin-bottom: 0;}
+	#Emerg_img{margin-top: 30px;}
+	body {text-align: center;background-color:#DDDDDD}
+	.Emerg_title{font: arial; font-size: 80; font-weight: bolder; font-align:left;padding-bottom: 0px;}
+	h2{padding-top: 30px;}
+	.Emerg_search_button{font-size:15;}
+	.list_box select{font-size:20px;width:500px;}
+	.search:hover{color:#444444}
+	.search:visited{color:#444444}
+	.search:link{color:#444444;text-decoration:none;}
+	.MappingArea{background-color: #f6871e; padding: 300px; margin: 50px; padding-top: 0px; margin-top: 0}
+	.Map{margin: 50px;}
+	.Map{width: 500px; height:500px; background: #7d7d7d no-repeat;margin:auto;}
+	</style>
+</head>
+
+<body>
+	<div class = "Emergency"> 
+		<br><br>
+		<div id = "Emerg_img">
+		    <a href="/~KYS"><image src ="./img/image.png" width="200px" height="234px"></a>
+		</div>
+		<br>
+		<div class ="Emerg_title">
+		    EMERGENCY
+		</div>
+		<br><br>
+		<div class="Emerg_search_button">
+			<a href="./search.html" class="search">응급실 검색</a>
+		</div>
+		<br><br>
+	</div>
+
+	<div class="MappingArea">
+	<br>
+	<div class= "Map">
+		
+	</div>
+    <br>
+	<div class= "list_box">
+		<select id="hospitalList">
+		    <option>----- 병원 선택 -----</option>
+		</select>
+		<br> <br>
+			<div class= "Detail_info" id="detailView">
+			
+			</div>
+	</div>
+</body>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDWx4QHjxwerTWqphkjlPz7EZCHhoG0z8&callback=initMap"></script>
+<script type="text/javascript">
+	var mMap;
+
+	function initMap() {
+		var successCallback = function(position) {
+			var coords = position.coords,
+				myPosition = {lat: coords.latitude, lng: coords.longitude};
+
+			mMap = new google.maps.Map(document.querySelector('.Map'), {
+				center: myPosition,
+				zoom: 16
+			});
+
+			var marker = new google.maps.Marker({
+				position: myPosition,
+				map: mMap,
+				title: 'My Position!'
+			});
+
+			getHospitalList(position)
+		};
+
+		var errorCallback = function(error) {
+			console.log(error);
+			alert('[ERROR_CODE: ' + error.code + ']' + error.message);
+		};
+
+		getGeolocation(successCallback, errorCallback, {
+			enableHighAccuracy: true
+		});
+	}
+
+	function getGeolocation(success, error, options) {
+		if ( !navigator.geolocation ) {
+			return 'Not support geolocation';
+		}
+
+		return navigator.geolocation.getCurrentPosition(success, error, options);
+	}
+
+	/*@return {[type]} [description]*/
+	
+	function getHospitalList(position) {
+		var xmlHttp = new XMLHttpRequest(),
+			url = 'http://175.192.4.190:8888/?method=0&WGS84_LON=' + position.coords.longitude + '&WGS84_LAT=' + position.coords.latitude;
+		xmlHttp.onreadystatechange = function(e) {
+			if(xmlHttp.readyState == 4) {
+				if(xmlHttp.status == 200) {
+					var data = xmlHttp.responseText;
+					
+
+					if ( data ) {
+						data = JSON.parse(data);
+
+						setHospitalList(data);
+					}
+				}
+			}
+		};
+		xmlHttp.open("GET", url, true);
+		xmlHttp.send(null);
+	}
+
+	function setHospitalList(hospitalList) {
+		var item,
+			hospitalListCount = hospitalList.length,
+			hospitalListHtml = '';
+
+		for ( var i = 0; i < hospitalListCount; i ++ ) {
+			item = hospitalList[i];
+
+			hospitalListHtml += '<option value=' + i + '>' + item.DUTY_NAME + '</option>';
+		}
+
+		document.querySelector('#hospitalList').innerHTML = hospitalListHtml;
+
+		document.querySelector('#hospitalList').addEventListener('change', function(e) {
+			var index = this.options[this.selectedIndex].value;
+			showHospitalData(hospitalList[index]);
+		});
+		showHospitalData(hospitalList[0]);
+	}
+
+	function showHospitalData(hospitalData) {
+		var html = [
+			'기관명 : ' + hospitalData.DUTY_NAME + '<br />',
+			'대표전화1 : ' + hospitalData.DUTY_TEL1 + '<br />',
+			'주소 : ' + hospitalData.DUTY_ADDR  + '<br />',
+			'병원경도 : ' + hospitalData.LONGITUDE + '<br />',
+			'병원위도 : ' + hospitalData.LATITUDE + '<br />',
+			'거리 : ' + hospitalData.DISTANCE + '<br />'
+		];
+
+		document.querySelector('#detailView').innerHTML = html.join('');
+	}
+
+	(function() {
+
+	})();
+
+</script>
+</html>
