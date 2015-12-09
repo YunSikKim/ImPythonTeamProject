@@ -110,6 +110,16 @@
 						data = JSON.parse(data);
 
 						setHospitalList(data);
+						
+						dataCount = data.length
+						
+						for ( var i = 0; i < dataCount; i ++ ) {
+							var marker = new google.maps.Marker({
+								position: new google.maps.LatLng(data[i].LATITUDE, data[i].LONGITUDE),
+								map: mMap,
+								icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+							});
+						}
 					}
 				}
 			}
