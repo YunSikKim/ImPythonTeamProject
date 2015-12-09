@@ -36,23 +36,40 @@ class DefaultHttpServerHandler(BaseHTTPRequestHandler):
 	
 		for items in soup.findAll('item'):
 			temp = []
-			for item in items: 
-				tempsplit = str(item).split('>', 1)
-				print(tempsplit)
-				if tempsplit[0] == '<distance':
-					temp.append(item.string)
-				if tempsplit[0] == '<dutyname':
-					temp.append(item.string)
-				if tempsplit[0] == '<dutyaddr':
-					temp.append(item.string)
-				if tempsplit[0] == '<dutytel1':
-					temp.append(item.string)
-				if tempsplit[0] == '<latitude':
-					temp.append(item.string)
-				if tempsplit[0] == '<longitude':
-					temp.append(item.string)
-				
-				print(temp)
+			if method == '0':
+				for item in items: 
+					tempsplit = str(item).split('>', 1)
+					print(tempsplit)
+					if tempsplit[0] == '<distance':
+						temp.append(item.string)
+					if tempsplit[0] == '<dutyname':
+						temp.append(item.string)
+					if tempsplit[0] == '<dutyaddr':
+						temp.append(item.string)
+					if tempsplit[0] == '<dutytel1':
+						temp.append(item.string)
+					if tempsplit[0] == '<latitude':
+						temp.append(item.string)
+					if tempsplit[0] == '<longitude':
+						temp.append(item.string)
+					
+					print(temp)
+			else:
+				for item in items: 
+					tempsplit = str(item).split('>', 1)
+					print(tempsplit)
+					if tempsplit[0] == '<dutyname':
+						temp.append(item.string)
+					if tempsplit[0] == '<dutyaddr':
+						temp.append(item.string)
+					if tempsplit[0] == '<dutytel1':
+						temp.append(item.string)
+					if tempsplit[0] == '<wgs84lat':
+						temp.append(item.string)
+					if tempsplit[0] == '<wgs84lon':
+						temp.append(item.string)
+					
+					print(temp)
 			elist.append(temp)
 	
 		jsondata = []
@@ -65,7 +82,7 @@ class DefaultHttpServerHandler(BaseHTTPRequestHandler):
 				jsondata.append(dic)
 		else:
 			for item in elist:
-				dic = dict(DUTY_NAME=item[0], DUTY_ADDR=item[1], DUTY_TEL1=item[2], LATITUDE=item[3], LONGITUDE=item[4])
+				dic = dict(DUTY_NAME=item[1], DUTY_ADDR=item[0], DUTY_TEL1=item[2], LATITUDE=item[3], LONGITUDE=item[4])
 				jsondata.append(dic)
 	
 		data2 = json.dumps(jsondata, ensure_ascii=False)
