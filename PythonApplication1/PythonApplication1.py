@@ -1,12 +1,10 @@
 ﻿from urllib.request import urlopen
-import urllib.parse
 from bs4 import BeautifulSoup
 import http.server
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 class DefaultHttpServerHandler(BaseHTTPRequestHandler):
-<<<<<<< HEAD
 	def do_GET(self):
 		param = ''
 		method = ''
@@ -39,10 +37,23 @@ class DefaultHttpServerHandler(BaseHTTPRequestHandler):
 		for items in soup.findAll('item'):
 			temp = []
 			for item in items: 
-				temp.append(item.string)
+				tempsplit = str(item).split('>', 1)
+				print(tempsplit)
+				if tempsplit[0] == '<distance':
+					temp.append(item.string)
+				if tempsplit[0] == '<dutyname':
+					temp.append(item.string)
+				if tempsplit[0] == '<dutyaddr':
+					temp.append(item.string)
+				if tempsplit[0] == '<dutytel1':
+					temp.append(item.string)
+				if tempsplit[0] == '<latitude':
+					temp.append(item.string)
+				if tempsplit[0] == '<longitude':
+					temp.append(item.string)
+				
+				print(temp)
 			elist.append(temp)
-	
-		print(elist)
 	
 		jsondata = []
 	
@@ -50,11 +61,11 @@ class DefaultHttpServerHandler(BaseHTTPRequestHandler):
 	
 		if method == '0':
 			for item in elist:
-				dic = dict(DISTANCE=item[1], DUTY_NAME=item[6], DUTY_ADDR=item[2], DUTY_TEL1=item[7], LATITUDE=item[10], LONGITUDE=item[11])
+				dic = dict(DISTANCE=item[0], DUTY_NAME=item[2], DUTY_ADDR=item[1], DUTY_TEL1=item[3], LATITUDE=item[4], LONGITUDE=item[5])
 				jsondata.append(dic)
 		else:
 			for item in elist:
-				dic = dict(DUTY_NAME=item[3], DUTY_ADDR=item[0], DUTY_TEL1=item[4], LATITUDE=item[9], LONGITUDE=item[10])
+				dic = dict(DUTY_NAME=item[0], DUTY_ADDR=item[1], DUTY_TEL1=item[2], LATITUDE=item[3], LONGITUDE=item[4])
 				jsondata.append(dic)
 	
 		data2 = json.dumps(jsondata, ensure_ascii=False)
@@ -71,49 +82,5 @@ class DefaultHttpServerHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
 	httpd = HTTPServer(('', 8888), DefaultHttpServerHandler)
-=======
-    def do_GET(self):
-        param = ''
-        url = ''
-        c = self.path
-        temp = c.split("?")
-        query_components = list(c.split("=") for c in temp[1].split("&"))
-        for query in query_components:
-            param += "&" + query[0] + "=" + query[1]
-        url = 'http://openapi.e-gen.or.kr/openapi/service/rest/ErmctInfoInqireService/getEgytListInfoInqire?' + param + '&numOfRows=100&ServiceKey=FHlV2aXJriahVZyA8K86zVh2MbfmzRPOsXf9N5eHFWZaZBQ66vkxEI8sXLCFMHJ1SveL1Yu5bNpXty9kGs243g%3D%3D'
-        data = urlopen(url)
-
-        soup = BeautifulSoup(data, from_encoding="utf-8")
-
-        elist = []
-
-        for items in soup.findAll('item'):
-            temp = []
-            for item in items: 
-                temp.append(item.string)
-            elist.append(temp)
-        
-        jsondata = []
-        
-        dic = {}
-        
-        for item in elist:
-            dic = dict(name=item[3], emclsName=item[2], address=item[0], representTel=item[4], emergencyTel=item[5], latitude=item[9], longitude=item[10])
-            jsondata.append(dic)
-        
-        for item in jsondata:
-            print(item)
-
-        data2 = json.dumps(jsondata, ensure_ascii=False)
-
-        # with open('data.json', 'w', encoding='utf-8') as f:
-        #     f.write(data2)
-        
-        self.wfile.write(data2.encode("utf-8"));
-        # self.wfile.write('HELLO WORLD')
-
-if __name__ == '__main__':
-	httpd = HTTPServer(('', 8881), DefaultHttpServerHandler)
->>>>>>> 05243a0519d3ba8bd641972b2431141bf91ae7c3
 	print ('Started Webserver port 8888...')
 	httpd.serve_forever()
